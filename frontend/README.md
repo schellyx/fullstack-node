@@ -61,3 +61,44 @@ Das Projekt enthält ein [Dockerfile](c:\Users\nutri\TechstarterWorkspace\node-c
     docker run -d -p 8080:80 mini-notizblock
     ```
     Die Anwendung ist dann unter [http://localhost:8080](http://localhost:8080) erreichbar.
+
+## Persistente Datenspeicherung
+
+### Entscheidung: Bind Mount
+
+Für die persistente Speicherung der Daten des Backends wurde in der Entwicklungsumgebung ein **Bind Mount** gewählt. 
+
+### Begründung
+
+#### Vorteile von Bind Mounts:
+1. **Direkter Zugriff auf Dateien**:
+   - Änderungen an den Daten (z. B. `nodes-data.json`) können direkt im Host-Dateisystem vorgenommen und überprüft werden.
+2. **Einfaches Debugging**:
+   - Entwickler können die gespeicherten Daten während der Entwicklung inspizieren und manuell bearbeiten.
+3. **Keine zusätzliche Konfiguration**:
+   - Es ist keine explizite Erstellung eines Docker-Volumes erforderlich, da das Host-Dateisystem direkt verwendet wird.
+
+#### Nachteile von Bind Mounts:
+- **Abhängigkeit vom Host-Dateisystem**:
+  - Der Container ist auf die Struktur und Verfügbarkeit des Host-Dateisystems angewiesen.
+- **Potenzielle Sicherheitsrisiken**:
+  - Der Container hat direkten Zugriff auf das Host-Dateisystem, was ungewollte Änderungen ermöglichen könnte.
+
+#### Warum kein Named Volume?
+Ein **Named Volume** wäre in einer Produktionsumgebung sinnvoller, da es:
+- Daten unabhängig vom Host-Dateisystem speichert.
+- Bessere Isolation und Portabilität bietet.
+- Automatisch von Docker verwaltet wird.
+
+In der Entwicklungsumgebung ist jedoch der direkte Zugriff auf die Daten wichtiger als die Isolation, weshalb ein Bind Mount bevorzugt wurde.
+
+### Nutzung des Bind Mounts
+
+Um das Backend mit einem Bind Mount zu starten, verwende den folgenden Befehl:
+
+```bash
+docker run -d \
+  -p 3000:3000 \
+  -v "$(pwd)/nodes-data.json:/usr/src/app/nodes-data.json" \
+  --name fullstack-backend \
+  fullstack-backend-image
